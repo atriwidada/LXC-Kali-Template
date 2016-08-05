@@ -13,10 +13,8 @@ done
 # Make sure the usual locations are in PATH
 export PATH=$PATH:/usr/sbin:/usr/bin:/sbin:/bin
 
-SSH_PORT=65512
-SSH_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDfPIOm6TSo7pffbQzWCp9NILUZTPURMotgyfILXzbqb5xmaYGPN/CnDkbTD6EXoHklqhnT7eLVHjg2F93GtkNf8k5cy1UpPBkJ9YUGK9bJdaVN/VtFhU+lAUcXVu/DfPBfCywGDlznmlJItwCHY39vB8z+SqK+OEDkL1hARSmaG4ulhdymJ8wg8U5jOHmnaVi0eGXUrjVYK67jahru/7r90Vpt+3wWLzzHAH9hqI+IJImsFUxaNQuunLhmtGVg991Tz8tqwQjIJVaCdOcKN7KWhN+rXZPqYfX8OEe6S+BxPSW+13IBu6X61la96MjGGEm+XgsrkSLqBk7J75jlycwN"
 DNS_SERVER="8.8.8.8"
-MIRROR="http://ftp.uk.debian.org/debian"
+MIRROR="http://kambing.ui.ac.id/debian"
 DEBIAN_FRONTEND=noninteractive
 LOCALSTATEDIR="/var"
 LXC_TEMPLATE_CONFIG="/usr/share/lxc/config"
@@ -72,19 +70,18 @@ EOF
 $hostname
 EOF
     cat <<EOF > $rootfs/etc/apt/sources.list
-deb http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
-deb-src http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
-deb http://http.kali.org/kali kali main contrib non-free
-deb-src http://http.kali.org/kali kali main contrib non-free
-deb http://security.kali.org/kali-security kali/updates main contrib non-free
-deb-src http://security.kali.org/kali-security kali/updates main contrib non-free
+#deb http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
+#deb-src http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
+#deb http://security.debian.org/ wheezy/updates main contrib non-free
+#deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://kambing.ui.ac.id/kali kali-rolling main contrib non-free
+deb-src http://kambing.ui.ac.id/kali kali-rolling main contrib non-free
+#deb http://security.kali.org/kali-security kali/updates main contrib non-free
+#deb-src http://security.kali.org/kali-security kali/updates main contrib non-free
 deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
 deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
 EOF
     cat <<EOF > $rootfs/etc/ssh/sshd_config
-Port $SSH_PORT
 Protocol 2
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_dsa_key
@@ -113,9 +110,8 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 UsePAM yes
 EOF
     cat <<EOF > $rootfs/etc/locale.gen
-en_GB.UTF-8 UTF-8
-pl_PL ISO-8859-2
-pl_PL.UTF-8 UTF-8
+en_US.UTF-8 UTF-8
+id_ID.UTF-8 UTF-8
 EOF
     cat <<EOF > $rootfs/tmp/install.sh
 #!/bin/bash
@@ -123,12 +119,6 @@ locale-gen
 update-locale LANG=en_US.UTF-8
 apt-key adv --keyserver pgp.mit.edu --recv-keys ED444FF07D8D0BF6
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
-
-mkdir -p /root/.ssh
-chmod 700 /root/.ssh
-echo "$SSH_KEY" > /root/.ssh/authorized_keys2
-chmod 600 /root/.ssh/authorized_keys2
-echo "nameserver $DNS_SERVER" > /etc/resolv.conf
 
 apt-get update
 aptitude -f -y install ~prequired ~pstandard kali-linux
@@ -155,7 +145,7 @@ cleanup()
 
 download_debian()
 {
-    packages=ifupdown,locales,libui-dialog-perl,dialog,isc-dhcp-client,netbase,net-tools,iproute,openssh-server,build-essential,htop,mc,bmon,iptables,tcpdump,vim,git,subversion,rsyslog,cron,aptitude,apt-file,inetutils-ping,inetutils-telnet,nano,net-tools,netbase,netcat-traditional,traceroute,wget,logrotate,iproute,install-info,info,cpio,bsdmainutils,logrotate,lsb-release,psmisc,less,vim,emacs,unattended-upgrades,sudo,
+    packages=ifupdown,locales,libui-dialog-perl,dialog,isc-dhcp-client,netbase,net-tools,iproute,openssh-server,build-essential,htop,mc,bmon,iptables,tcpdump,vim,git,subversion,rsyslog,cron,aptitude,apt-file,inetutils-ping,inetutils-telnet,nano,net-tools,netbase,netcat-traditional,traceroute,wget,logrotate,iproute,install-info,info,cpio,bsdmainutils,logrotate,lsb-release,psmisc,less,vim,unattended-upgrades,sudo,
     cache=$1
     arch=$2
 
@@ -166,10 +156,12 @@ download_debian()
 	return 1
     fi
 
-    echo "Downloading debian minimal ..."
+    echo "Downloading kali minimal ..."
+# need debootstrap script from http://git.kali.org/gitweb/?p=packages/debootstrap.git;a=blob_plain;f=scripts/kali;hb=HEAD
+# put that file in /usr/share/debootstrap/scripts/kali
     debootstrap --verbose --variant=minbase --arch=$arch \
 	--include=$packages \
-	"wheezy" "$cache/partial-kali-$arch" $MIRROR
+	"kali" "$cache/partial-kali-$arch" $MIRROR
     if [ $? -ne 0 ]; then
 	echo "Failed to download the rootfs, aborting."
 	return 1
@@ -216,7 +208,7 @@ install_kali()
 	if [ ! -e "$cache/rootfs-kali-$arch" ]; then
 	    download_debian $cache $arch
 	    if [ $? -ne 0 ]; then
-		echo "Failed to download 'debian base'"
+		echo "Failed to download 'kali base'"
 		return 1
 	    fi
 	fi
@@ -308,7 +300,7 @@ EOF
     return 0
 }
 
-options=$(getopt -o hp:n:c -l help,path:,name:,clean -- "$@")
+options=$(getopt -o hp:n:a:r:c -l help,rootfs:,path:,name:,arch:,release:,clean -- "$@")
 #echo "getopt: $options"
 #echo "Line Number: $LINENO"
 if [ $? -ne 0 ]; then
@@ -352,10 +344,12 @@ fi
 
 # detect rootfs
 config="$path/config"
-if grep -q '^lxc.rootfs' $config 2>/dev/null ; then
-    rootfs=`grep 'lxc.rootfs =' $config | awk -F= '{ print $2 }'`
-else
-    rootfs=$path/rootfs
+if [ -z "$rootfs" ]; then
+  if grep -q '^lxc.rootfs' $config 2>/dev/null ; then
+      rootfs=`grep 'lxc.rootfs =' $config | awk -F= '{ print $2 }'`
+  else
+      rootfs=$path/rootfs
+  fi
 fi
 
 
