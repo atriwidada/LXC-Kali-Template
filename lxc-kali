@@ -70,14 +70,8 @@ EOF
 $hostname
 EOF
     cat <<EOF > $rootfs/etc/apt/sources.list
-#deb http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
-#deb-src http://ftp.uk.debian.org/debian/ wheezy main contrib non-free
-#deb http://security.debian.org/ wheezy/updates main contrib non-free
-#deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 deb http://kambing.ui.ac.id/kali kali-rolling main contrib non-free
 deb-src http://kambing.ui.ac.id/kali kali-rolling main contrib non-free
-#deb http://security.kali.org/kali-security kali/updates main contrib non-free
-#deb-src http://security.kali.org/kali-security kali/updates main contrib non-free
 deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
 deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
 EOF
@@ -121,7 +115,7 @@ apt-key adv --keyserver pgp.mit.edu --recv-keys ED444FF07D8D0BF6
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
 
 apt-get update
-aptitude -f -y install ~prequired ~pstandard kali-linux
+#aptitude -f -y install ~prequired ~pstandard kali-linux
 EOF
     chroot $rootfs /bin/bash /tmp/install.sh
     chroot $rootfs rm /tmp/install.sh
@@ -145,7 +139,7 @@ cleanup()
 
 download_debian()
 {
-    packages=ifupdown,locales,libui-dialog-perl,dialog,isc-dhcp-client,netbase,net-tools,iproute,openssh-server,build-essential,htop,mc,bmon,iptables,tcpdump,vim,git,subversion,rsyslog,cron,aptitude,apt-file,inetutils-ping,inetutils-telnet,nano,net-tools,netbase,netcat-traditional,traceroute,wget,logrotate,iproute,install-info,info,cpio,bsdmainutils,logrotate,lsb-release,psmisc,less,vim,unattended-upgrades,sudo,
+    packages=ifupdown,locales,libui-dialog-perl,dialog,isc-dhcp-client,netbase,net-tools,iproute,openssh-server,htop,mc,vim,git,rsyslog,cron,apt-file,inetutils-ping,inetutils-telnet,nano,net-tools,netbase,netcat-traditional,traceroute,wget,logrotate,install-info,info,cpio,bsdmainutils,logrotate,lsb-release,psmisc,less,vim,unattended-upgrades,sudo,gnupg,
     cache=$1
     arch=$2
 
